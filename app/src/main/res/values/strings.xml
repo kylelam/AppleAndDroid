@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">AppleAndDroid</string>
+
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string name="appTitle">AppleAndDroid</string>
+    <string name="startButtonText">Start</string>
+    <string name="title_activity_game">game</string>
+</resources>
