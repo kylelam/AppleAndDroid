@@ -1,15 +1,21 @@
 package io.github.kylelam.appleanddroid;
 
+import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.os.Handler;
+import android.os.Vibrator;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.Random;
@@ -22,6 +28,14 @@ public class game extends ActionBarActivity {
     final int TOTAL_WIDTH = 4;
     final int TOTAL_HEIGHT = 5;
     final int TOTAL_TIME = FPS * 30;
+
+    int total_score = 0;
+
+    Vibrator my_vibrator;
+    ProgressBar progressBar;
+    TextView scoreView;
+    //Animation [] popUpArray = new Animation[TOTAL_WIDTH*TOTAL_HEIGHT];
+    //Animation [] popDownArray = new Animation[TOTAL_WIDTH*TOTAL_HEIGHT];
 
     int shellOnBoard = TOTAL_WIDTH * TOTAL_HEIGHT;
 
@@ -73,8 +87,9 @@ public class game extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         //setContentView(R.layout.activity_game);
 
+        total_score = 0;
 
-        Log.v(Double.toString(rate),"debug");
+        //Log.v(Double.toString(rate),"debug");
 
         //no rotate
         oldOrientation = getRequestedOrientation();
@@ -94,6 +109,32 @@ public class game extends ActionBarActivity {
 
         LinearLayout gameLayout = new LinearLayout(this);
         gameLayout.setOrientation(LinearLayout.VERTICAL);
+
+
+
+        LinearLayout progressBarLinearLayout = new LinearLayout(this);
+        progressBarLinearLayout.setOrientation(LinearLayout.HORIZONTAL);
+        progressBarLinearLayout.setLayoutParams(new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT, 0.0f));
+        progressBar = new ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
+        progressBar.setLayoutParams(new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT));
+        progressBar.setMax(TOTAL_TIME);
+        progressBar.setProgress(0);
+
+
+
+        progressBarLinearLayout.addView(progressBar);
+        gameLayout.addView(progressBarLinearLayout);
+
+        scoreView = new TextView(this);
+        scoreView.setText("0");
+        scoreView.setLayoutParams(new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT, 0.0f));
+        gameLayout.addView(scoreView);
 
         for (int countJ = 0; countJ < TOTAL_HEIGHT; countJ++) {
 
@@ -134,7 +175,27 @@ public class game extends ActionBarActivity {
         //make visible to program
         setContentView(gameLayout);
         startGameLoop();
+
+
+        //set up vibrator
+        my_vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+        // Vibrate for 500 milliseconds
+        my_vibrator.vibrate(500);
+
+
+        //set up animation
+        /*for (int i =0; i < TOTAL_HEIGHT*TOTAL_WIDTH; i++) {
+
+            popup = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.abc_slide_in_bottom);
+            popdown = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.abc_slide_out_bottom);
+
+        }*/
     }
+
+
+
+
+
 
     private void startGameLoop(){
         //to start the gameLoop
@@ -171,15 +232,21 @@ public class game extends ActionBarActivity {
             }
 
 
-
+            /*
             if ((currentTime%(FPS*15))==0) {
                 Toast.makeText(game.this,
                         "hello from timer",
                         Toast.LENGTH_SHORT).show();
             }
+            */
+
             /* and here comes the "trick" */
             currentTime++;
-            gameLoopHandler.postDelayed(this, 1000/FPS);
+            progressBar.setProgress(currentTime);
+            scoreView.setText(Integer.toString(total_score));
+
+            if (currentTime <= TOTAL_TIME)
+                gameLoopHandler.postDelayed(this, 1000/FPS);
         }
     };
 
@@ -193,6 +260,7 @@ public class game extends ActionBarActivity {
 
         Log.v(Double.toString(newRate),"debug: newRate");*/
         double newRate = upTime/(targetShellNum+1);
+
 
         double percent = 0.6;
 
@@ -222,10 +290,18 @@ public class game extends ActionBarActivity {
         ImageView imageView;
         int scheduledResetTime = 0;
         int startTime = 0;
+        Animation popUp;
+        Animation popDown;
 
         public Shell(ImageView imageView, boolean isBlank){
             this.isBlank = isBlank;
             this.imageView = imageView;
+            popUp = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.abc_slide_in_bottom);
+            popDown = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.abc_slide_out_bottom);
+
+            //popUp.setFillAfter(true);
+            //popDown.setFillAfter(true);
+            //popUp.
         }
 
         public void setClickable(boolean clickable){
@@ -244,11 +320,14 @@ public class game extends ActionBarActivity {
                 scheduledResetTime = (int)(FPS * upTime + 0.5) + currentTime;
                 shellOnBoard = shellOnBoard + 1;
 
-                Log.v(Integer.toString(shellOnBoard),"debug: shellOnBoard: +1");
+                Log.v(Integer.toString(shellOnBoard), "debug: shellOnBoard: +1");
                 //do real anime works
                 imageView.setVisibility(View.VISIBLE);
+
+                imageView.startAnimation(popUp);
             } else {
                 //do real anime works
+                imageView.startAnimation(popDown);
                 imageView.setVisibility(View.INVISIBLE);
 
                 //on real anime finished
@@ -268,6 +347,9 @@ public class game extends ActionBarActivity {
             int endTime = currentTime;
             updateUpTime(startTime - endTime);
 
+            my_vibrator.vibrate(250);
+
+            total_score += 100;
         }
 
         public void update(){
