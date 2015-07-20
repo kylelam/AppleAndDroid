@@ -6,4 +6,8 @@
     <string name="appTitle">AppleAndDroid</string>
     <string name="startButtonText">Start</string>
     <string name="title_activity_game">game</string>
+    <string name="title_activity_result">ResultActivity</string>
+
+    <string name="banner_ad_unit_id">ca-app-pub-0612551941579079/6306729663</string>
+
 </resources>
